@@ -1,0 +1,32 @@
+{
+	"schemaVersion": 1,
+	"id": "ogfog",
+	"version": "${version}",
+	"name": "OG Fog",
+	"description": "the old minecraft fog is back: pick the fog color and how close it starts and ends, so the far edge of the world matches your pack. settings through mod menu and cloth config, or the /ogfog command.",
+	"authors": ["realwysss"],
+	"contact": {"sources": "https://github.com/realwysss/OG-Fog"},
+	"license": "MIT",
+	"icon": "assets/ogfog/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": ["dev.ogfg.OgFg"],
+		"modmenu": ["dev.ogfg.ModmenuIntgr"]
+	},
+	"mixins": [
+		{
+			"config": "ogfog.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"suggests": {
+		"modmenu": "*",
+		"cloth-config": "*"
+	},
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"fabric-command-api-v2": "*",
+		"minecraft": "1.21.11",
+		"java": ">=21"
+	}
+}

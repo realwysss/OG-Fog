@@ -1,0 +1,8 @@
+{
+  "required": true,
+  "package": "dev.ogfg.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "FogRdrMxn"
+  ]
+}
