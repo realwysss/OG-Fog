@@ -10,9 +10,8 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.network.chat.Component;
 
 public class OgFg implements ClientModInitializer {
-	static final String[] MS = {"vanilla", "custom", "sky"};
-
 	static int say(FabricClientCommandSource s, String m) {
+		Cfg.fx();
 		Cfg.sv();
 		s.sendFeedback(Component.literal(m));
 		return 1;
@@ -23,9 +22,9 @@ public class OgFg implements ClientModInitializer {
 			int v = IntegerArgumentType.getInteger(x, "v");
 			if (n.equals("start")) Cfg.c.st = v;
 			else if (n.equals("end")) Cfg.c.en = v;
-			else Cfg.c.sky = v;
+			else Cfg.c.str = v;
 			Cfg.fx();
-			return say(x.getSource(), "fog " + n + " " + v + "%");
+			return say(x.getSource(), "fog " + n + " " + v + (n.equals("strength") ? "%" : " blocks"));
 		}));
 	}
 
@@ -34,7 +33,7 @@ public class OgFg implements ClientModInitializer {
 		ClientCommandRegistrationCallback.EVENT.register((d, r) -> d.register(ClientCommandManager.literal("ogfog")
 				.executes(x -> {
 					Cfg c = Cfg.c;
-					x.getSource().sendFeedback(Component.literal("og fog " + (c.on ? "on" : "off") + ", " + MS[c.mode] + " " + String.format("%06x", c.col) + ", start " + c.st + "%, end " + c.en + "%, sky " + c.sky + "%"));
+					x.getSource().sendFeedback(Component.literal("og fog " + (c.on ? "on" : "off") + ", start " + c.st + ", end " + c.en + " blocks, " + (c.mode == 0 ? "pack sky" : "color " + String.format("%06x", c.col)) + ", strength " + c.str + "%"));
 					return 1;
 				})
 				.then(ClientCommandManager.literal("on").executes(x -> {
@@ -44,6 +43,10 @@ public class OgFg implements ClientModInitializer {
 				.then(ClientCommandManager.literal("off").executes(x -> {
 					Cfg.c.on = false;
 					return say(x.getSource(), "og fog off");
+				}))
+				.then(ClientCommandManager.literal("sky").executes(x -> {
+					Cfg.c.mode = 0;
+					return say(x.getSource(), "fog uses the pack sky");
 				}))
 				.then(ClientCommandManager.literal("color").then(ClientCommandManager.argument("hex", StringArgumentType.word()).executes(x -> {
 					String h = StringArgumentType.getString(x, "hex").replace("#", "");
@@ -56,22 +59,8 @@ public class OgFg implements ClientModInitializer {
 					Cfg.c.mode = 1;
 					return say(x.getSource(), "fog color " + String.format("%06x", Cfg.c.col));
 				})))
-				.then(ClientCommandManager.literal("mode").then(ClientCommandManager.argument("m", StringArgumentType.word()).suggests((x, b) -> {
-					for (String s : MS) b.suggest(s);
-					return b.buildFuture();
-				}).executes(x -> {
-					String m = StringArgumentType.getString(x, "m");
-					for (int i = 0; i < 3; i++) {
-						if (MS[i].equals(m)) {
-							Cfg.c.mode = i;
-							return say(x.getSource(), "fog color mode " + m);
-						}
-					}
-					x.getSource().sendFeedback(Component.literal("use vanilla, custom or sky"));
-					return 0;
-				})))
-				.then(num("start", 0, 95))
-				.then(num("end", 5, 100))
-				.then(num("sky", 10, 300))));
+				.then(num("start", 0, 250))
+				.then(num("end", 2, 256))
+				.then(num("strength", 0, 100))));
 	}
 }

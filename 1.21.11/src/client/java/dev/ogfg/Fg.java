@@ -1,51 +1,106 @@
 package dev.ogfg;
 
+import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.buffers.Std140Builder;
+import com.mojang.blaze3d.buffers.Std140SizeCalculator;
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.pipeline.TextureTarget;
+import com.mojang.blaze3d.shaders.UniformType;
+import com.mojang.blaze3d.systems.CommandEncoder;
+import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.FilterMode;
+import java.util.OptionalInt;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.client.renderer.MappableRingBuffer;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.FogType;
-import org.joml.Vector4f;
+import org.joml.Matrix4f;
 
 public class Fg {
+	static final int SZ = new Std140SizeCalculator().putMat4f().putMat4f().putMat4f().putMat4f().putVec4().putVec4().get();
+	static final float BIG = 1000000f;
+	public static boolean ok;
 	public static boolean live;
+	public static int caps;
+	static boolean got;
 	static float hh;
-	static int sky;
-	static boolean ow;
+	static RenderPipeline pp;
+	static TextureTarget sky;
+	static MappableRingBuffer ub;
 
-	public static void st(Camera cam, int rd, float pt, ClientLevel lvl) {
-		ow = lvl.dimension() == Level.OVERWORLD;
-		live = Cfg.c.on && cam.getFluidInCamera() == FogType.NONE && (ow || Cfg.c.dims);
-		if (live && cam.entity() instanceof LivingEntity e && (e.hasEffect(MobEffects.BLINDNESS) || e.hasEffect(MobEffects.DARKNESS))) live = false;
+	public static void st(Camera cam, int rd, ClientLevel lvl) {
 		hh = rd * 16f;
-		if (live && Cfg.c.mode == 2) sky = cam.attributeProbe().getValue(EnvironmentAttributes.SKY_COLOR, pt);
+		ok = Cfg.c.on && cam.getFluidInCamera() == FogType.NONE && (lvl.dimension() == Level.OVERWORLD || Cfg.c.dims);
+		if (ok && cam.entity() instanceof LivingEntity e && (e.hasEffect(MobEffects.BLINDNESS) || e.hasEffect(MobEffects.DARKNESS))) ok = false;
+		live = ok;
+		got = false;
 	}
 
-	public static void col(Vector4f v) {
-		int m = Cfg.c.mode;
-		if (m == 0) return;
-		int k = m == 1 ? Cfg.c.col : sky;
-		float r = (k >> 16 & 255) / 255f, g = (k >> 8 & 255) / 255f, b = (k & 255) / 255f;
-		if (Cfg.c.dim && ow) {
-			float d = Math.max(0.12f, Math.min(1f, Math.max(v.x, Math.max(v.y, v.z)) / 0.75f));
-			r *= d;
-			g *= d;
-			b *= d;
+	static void init() {
+		pp = RenderPipeline.builder(RenderPipelines.POST_PROCESSING_SNIPPET)
+				.withLocation(Identifier.fromNamespaceAndPath("ogfog", "pipeline/fog"))
+				.withVertexShader(Identifier.withDefaultNamespace("core/screenquad"))
+				.withFragmentShader(Identifier.fromNamespaceAndPath("ogfog", "post/fog"))
+				.withSampler("SkySampler")
+				.withSampler("DepthSampler")
+				.withUniform("FogInfo", UniformType.UNIFORM_BUFFER)
+				.withBlend(BlendFunction.TRANSLUCENT)
+				.build();
+		ub = new MappableRingBuffer(() -> "og fog ubo", 130, SZ);
+	}
+
+	public static void cap() {
+		if (!ok) return;
+		if (pp == null) init();
+		RenderTarget m = Minecraft.getInstance().getMainRenderTarget();
+		if (sky == null || sky.width != m.width || sky.height != m.height) {
+			if (sky != null) sky.destroyBuffers();
+			sky = new TextureTarget("og fog sky", m.width, m.height, false);
 		}
-		v.set(r, g, b, 1f);
+		RenderSystem.getDevice().createCommandEncoder().copyTextureToTexture(m.getColorTexture(), sky.getColorTexture(), 0, 0, 0, 0, 0, m.width, m.height);
+		got = true;
+		caps++;
 	}
 
-	public static float es(float x) {
-		return hh * Cfg.c.st / 100f;
+	public static void run(Matrix4f rot, Matrix4f proj) {
+		if (!ok || !got) return;
+		got = false;
+		RenderTarget m = Minecraft.getInstance().getMainRenderTarget();
+		float en = Math.min(Cfg.c.en, hh * 0.97f);
+		float st = Math.min(Cfg.c.st, en - 1f);
+		int k = Cfg.c.col;
+		CommandEncoder ce = RenderSystem.getDevice().createCommandEncoder();
+		try (GpuBuffer.MappedView mv = ce.mapBuffer(ub.currentBuffer(), false, true)) {
+			Std140Builder.intoBuffer(mv.data())
+					.putMat4f(proj.invert(new Matrix4f()))
+					.putMat4f(rot.invert(new Matrix4f()))
+					.putMat4f(rot)
+					.putMat4f(proj)
+					.putVec4(st, en, Cfg.c.str / 100f, Cfg.c.soft ? 1f : 0f)
+					.putVec4(Cfg.c.mode, (k >> 16 & 255) / 255f, (k >> 8 & 255) / 255f, (k & 255) / 255f);
+		}
+		try (RenderPass rp = ce.createRenderPass(() -> "og fog", m.getColorTextureView(), OptionalInt.empty())) {
+			rp.setPipeline(pp);
+			RenderSystem.bindDefaultUniforms(rp);
+			rp.setUniform("FogInfo", ub.currentBuffer());
+			rp.bindTexture("SkySampler", sky.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
+			rp.bindTexture("DepthSampler", m.getDepthTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST));
+			rp.draw(0, 3);
+		}
+		ub.rotate();
 	}
 
-	public static float ee(float x) {
-		return Math.max(hh * Cfg.c.en / 100f, hh * Cfg.c.st / 100f + 1f);
-	}
-
-	public static float sk(float x) {
-		return x * Cfg.c.sky / 100f;
+	public static float off(float x, int i) {
+		if (!live || i > 3) return x;
+		return i % 2 == 0 ? BIG : BIG + 1f;
 	}
 }

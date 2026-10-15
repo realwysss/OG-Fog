@@ -6,7 +6,7 @@
 	"description": "the old minecraft fog is back: pick the fog color and how close it starts and ends, so the far edge of the world matches your pack. settings through mod menu and cloth config, or the /ogfog command.",
 	"authors": ["realwysss"],
 	"contact": {"sources": "https://github.com/realwysss/OG-Fog"},
-	"license": "MIT",
+	"license": "All-Rights-Reserved",
 	"icon": "assets/ogfog/icon.png",
 	"environment": "client",
 	"entrypoints": {

@@ -8,12 +8,12 @@ import net.fabricmc.loader.api.FabricLoader;
 
 public class Cfg {
 	public boolean on = true;
-	public int mode = 1;
+	public int mode = 0;
 	public int col = 0x3a1f5c;
-	public boolean dim = true;
-	public int st = 55;
-	public int en = 100;
-	public int sky = 100;
+	public int st = 20;
+	public int en = 48;
+	public int str = 100;
+	public boolean soft = true;
 	public boolean dims = false;
 
 	static final Gson G = new GsonBuilder().setPrettyPrinting().create();
@@ -33,11 +33,11 @@ public class Cfg {
 	}
 
 	public static void fx() {
-		c.mode = Math.max(0, Math.min(2, c.mode));
+		c.mode = Math.max(0, Math.min(1, c.mode));
 		c.col &= 0xffffff;
-		c.st = Math.max(0, Math.min(95, c.st));
-		c.en = Math.max(c.st + 5, Math.min(100, c.en));
-		c.sky = Math.max(10, Math.min(300, c.sky));
+		c.st = Math.max(0, Math.min(250, c.st));
+		c.en = Math.max(c.st + 2, Math.min(256, c.en));
+		c.str = Math.max(0, Math.min(100, c.str));
 	}
 
 	public static void sv() {

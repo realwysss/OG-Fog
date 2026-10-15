@@ -2,61 +2,52 @@
 
 # OG Fog
 
-the old minecraft fog is back, and you pick how it looks. choose the fog color, where it starts and where it ends, so the far edge of the world fades into your resource pack instead of a white wall.
+the old minecraft fog is back and it blends into your sky. blocks fade into the sky behind them from every direction around you, so the world has depth and no white wall at the end of your render distance. with a resource pack that has a custom sky the fog takes the colors of that sky.
 
 client side fabric mod for 1.21.11. settings through mod menu with cloth config, or with the `/ogfog` command (needs fabric api).
 
 - **og fog on**: turn it off for the normal game fog
-- **color mode**: vanilla (normal fog color), custom color or sky color
-- **fog color**: any color. it is also the color you see where chunks are not loaded yet, so you never get the white flash when you load new chunks
-- **dim at night**: darkens the fog color at night and in storms like the normal fog does (default on)
-- **fog start**: where the fog begins, in percent of your render distance (default 55%)
-- **fog end**: where the fog is fully thick, in percent of your render distance (default 100%). lower it for a close wall of fog
-- **sky fog**: how far the fog reaches into the sky near the horizon (default 100%)
-- **nether and end**: use the settings there too (default off)
+- **fog start**: how many blocks away from you the fog starts (default 20)
+- **fog end**: how many blocks away you stop seeing blocks (default 48). set it to 40 to 50 for the old close fog
+- **fog color**: pack sky (default) or a custom color. pack sky makes the fog the color of the sky behind each block, so it matches any sky, also custom ones from resource packs
+- **fog strength**: how thick the fog gets at the end. 100% hides everything behind it
+- **soft fade**: fades the fog in smoothly, turn it off for the straight line fade of the old game
+- **nether and end**: use the fog there too (default off)
 
 ## commands
 
 - `/ogfog` shows the current settings
 - `/ogfog on` and `/ogfog off`
-- `/ogfog color 3a1f5c` sets a custom color (hex)
-- `/ogfog mode vanilla`, `custom` or `sky`
-- `/ogfog start 0-95`, `/ogfog end 5-100`, `/ogfog sky 10-300`
+- `/ogfog start 20` and `/ogfog end 48` (in blocks)
+- `/ogfog strength 100`
+- `/ogfog sky` uses the pack sky, `/ogfog color 3a1f5c` uses a custom color
 
 ## download
 
-`og-fog-mc1.21.11-1.0.0.jar` on the releases page. minecraft 1.21.11, fabric loader 0.16 or newer, fabric api.
+`og-fog-mc1.21.11-1.1.0.jar` on the releases page. minecraft 1.21.11, fabric loader 0.16 or newer, fabric api.
 
 ## pictures
 
-same spot, same render distance. normal fog and the default purple:
+normal fog and og fog, same spot, normal sky:
 
-| normal | og fog default |
+| normal | og fog |
 |---|---|
-| ![normal](screenshots/vanilla.png) | ![default](screenshots/default.png) |
+| ![normal](screenshots/vanilla-off.png) | ![og fog](screenshots/vanilla-on.png) |
 
-a close wall of fog (start 10%, end 50%) and the sky color mode:
+with a resource pack that has a custom sky (Crystal Universals Original):
 
-| start 10%, end 50% | sky color |
+| normal | og fog |
 |---|---|
-| ![tight](screenshots/tight.png) | ![sky color](screenshots/sky-color.png) |
+| ![pack off](screenshots/pack-off.png) | ![pack on](screenshots/pack-on.png) |
 
-at night the fog dims with the sky:
-
-![night](screenshots/night.png)
+| dusk | start 10, end 40 |
+|---|---|
+| ![dusk](screenshots/pack-dusk.png) | ![tight](screenshots/pack-tight.png) |
 
 ![settings](screenshots/settings.png)
 
-## tip for resource packs with a custom sky
-
-set the fog color to the dark color of your sky (for a purple pack something like `1e0a3c`), turn dim at night off if your sky stays the same all day, and set the fog end to 100%. the far edge of the world then fades into the same color as the sky.
-
 ## how it works
 
-a mixin on `FogRenderer`. when the fog values are written for the frame, the mod swaps in your color, start and end. the same color is used to clear the screen, which is why unloaded chunks show your color. water, lava, powder snow, blindness and darkness keep their own fog.
+the sky is drawn first, so the mod copies the picture right after the sky and before the terrain. at the end of the frame every pixel that is a block or an entity gets mixed with the sky behind it, by how far it is from you. blocks under the horizon use the sky at the horizon in the same direction. the normal game fog is turned off for the terrain so only this fog is used. water, lava, powder snow, blindness and darkness keep their own fog.
 
-## tests
-
-`./gradlew runClientGameTest` makes a flat world with a few pillars and takes screenshots of normal fog, the default, a close wall, sky color, night with and without dimming and the commands. it also checks the config and opens the cloth config screen. it was also run with sodium, sodium extra, scalablelux, badoptimizations, immediatelyfast, lithium and nuit loaded.
-
-license: MIT
+all rights reserved. made by wysss.
