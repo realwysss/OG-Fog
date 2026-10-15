@@ -32,6 +32,8 @@ public class Fg {
 	public static boolean live;
 	public static int caps;
 	static boolean got;
+	static boolean has;
+	public static int skips;
 	static float hh;
 	static RenderPipeline pp;
 	static TextureTarget sky;
@@ -56,6 +58,10 @@ public class Fg {
 				.withBlend(BlendFunction.TRANSLUCENT)
 				.build();
 		ub = new MappableRingBuffer(() -> "og fog ubo", 130, SZ);
+		try {
+			RenderSystem.getDevice().precompilePipeline(pp);
+		} catch (Exception e) {
+		}
 	}
 
 	public static void cap() {
@@ -68,13 +74,17 @@ public class Fg {
 		}
 		RenderSystem.getDevice().createCommandEncoder().copyTextureToTexture(m.getColorTexture(), sky.getColorTexture(), 0, 0, 0, 0, 0, m.width, m.height);
 		got = true;
+		has = true;
 		caps++;
 	}
 
 	public static void run(Matrix4f rot, Matrix4f proj) {
-		if (!ok || !got) return;
+		if (!ok) return;
+		if (!got) skips++;
 		got = false;
+		if (pp == null) init();
 		RenderTarget m = Minecraft.getInstance().getMainRenderTarget();
+		if (Cfg.c.mode == 0 && (!has || sky == null || sky.width != m.width || sky.height != m.height)) return;
 		float en = Math.min(Cfg.c.en, hh * 0.97f);
 		float st = Math.min(Cfg.c.st, en - 1f);
 		int k = Cfg.c.col;
