@@ -4,7 +4,7 @@
 
 the old minecraft fog is back and it blends into your sky. blocks fade into the sky behind them from every direction around you, so the world has depth and no white wall at the end of your render distance. with a resource pack that has a custom sky the fog takes the colors of that sky.
 
-client side fabric mod for 1.21.11. settings through mod menu with cloth config, or with the `/ogfog` command (needs fabric api).
+client side fabric mod for 1.21.11. settings with the menu (key **V** or mod menu, needs [Wysss Library](https://github.com/realwysss/Wysss-Library)), or with the `/ogfog` command (needs fabric api).
 
 - **og fog on**: turn it off for the normal game fog
 - **fog start**: how many blocks away from you the fog starts (default 20)
