@@ -22,6 +22,12 @@ public abstract class FogRdrMxn {
 	@Inject(method = "setupFog", at = @At("RETURN"))
 	private void b(Camera cam, int rd, DeltaTracker dt, float f, ClientLevel lvl, CallbackInfoReturnable<Vector4f> ci) {
 		Fg.live = false;
+		Vector4f v = ci.getReturnValue();
+		if (v != null) {
+			Fg.fr = v.x;
+			Fg.fg = v.y;
+			Fg.fb = v.z;
+		}
 	}
 
 	@ModifyVariable(method = "updateBuffer", at = @At("HEAD"), argsOnly = true, ordinal = 0)

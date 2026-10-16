@@ -24,7 +24,7 @@ client side fabric mod for 1.21.11. settings through mod menu with cloth config,
 
 ## download
 
-`og-fog-mc1.21.11-1.1.1.jar` on the releases page. minecraft 1.21.11, fabric loader 0.16 or newer, fabric api.
+`og-fog-mc1.21.11-1.2.0.jar` on the releases page. minecraft 1.21.11, fabric loader 0.16 or newer, fabric api.
 
 ## pictures
 
@@ -51,3 +51,5 @@ with a resource pack that has a custom sky (Crystal Universals Original):
 the sky is drawn first, so the mod copies the picture right after the sky and before the terrain. at the end of the frame every pixel that is a block or an entity gets mixed with the sky behind it, by how far it is from you. blocks under the horizon use the sky at the horizon in the same direction. the normal game fog is turned off for the terrain so only this fog is used. water, lava, powder snow, blindness and darkness keep their own fog.
 
 all rights reserved. made by wysss.
+
+the menu needs [Wysss Library](https://github.com/realwysss/Wysss-Library) installed.

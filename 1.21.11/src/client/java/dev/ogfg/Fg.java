@@ -1,6 +1,8 @@
 package dev.ogfg;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
+import com.mojang.blaze3d.framegraph.FramePass;
 import com.mojang.blaze3d.buffers.Std140Builder;
 import com.mojang.blaze3d.buffers.Std140SizeCalculator;
 import com.mojang.blaze3d.pipeline.BlendFunction;
@@ -16,6 +18,7 @@ import java.util.OptionalInt;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.MappableRingBuffer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
@@ -35,13 +38,15 @@ public class Fg {
 	static boolean has;
 	public static int skips;
 	static float hh;
+	public static float fr = 0.6f, fg = 0.7f, fb = 0.9f;
+	public static boolean dbg;
 	static RenderPipeline pp;
 	static TextureTarget sky;
 	static MappableRingBuffer ub;
 
 	public static void st(Camera cam, int rd, ClientLevel lvl) {
 		hh = rd * 16f;
-		ok = Cfg.c.on && cam.getFluidInCamera() == FogType.NONE && (lvl.dimension() == Level.OVERWORLD || Cfg.c.dims);
+		ok = Cfg.c.on && cam.getFluidInCamera() == FogType.NONE && (Cfg.c.dims || lvl.dimension() == Level.OVERWORLD || lvl.dimensionType().hasSkyLight() && !lvl.dimensionType().hasCeiling());
 		if (ok && cam.entity() instanceof LivingEntity e && (e.hasEffect(MobEffects.BLINDNESS) || e.hasEffect(MobEffects.DARKNESS))) ok = false;
 		live = ok;
 		got = false;
@@ -62,6 +67,13 @@ public class Fg {
 			RenderSystem.getDevice().precompilePipeline(pp);
 		} catch (Exception e) {
 		}
+	}
+
+	public static void pass(FrameGraphBuilder b, LevelTargetBundle t) {
+		if (!ok) return;
+		FramePass p = b.addPass("og fog sky");
+		t.main = p.readsAndWrites(t.main);
+		p.executes(Fg::cap);
 	}
 
 	public static void cap() {
@@ -96,7 +108,7 @@ public class Fg {
 					.putMat4f(rot)
 					.putMat4f(proj)
 					.putVec4(st, en, Cfg.c.str / 100f, Cfg.c.soft ? 1f : 0f)
-					.putVec4(Cfg.c.mode, (k >> 16 & 255) / 255f, (k >> 8 & 255) / 255f, (k & 255) / 255f);
+					.putVec4(Cfg.c.mode, Cfg.c.mode == 0 ? fr : (k >> 16 & 255) / 255f, Cfg.c.mode == 0 ? fg : (k >> 8 & 255) / 255f, Cfg.c.mode == 0 ? fb : (k & 255) / 255f);
 		}
 		try (RenderPass rp = ce.createRenderPass(() -> "og fog", m.getColorTextureView(), OptionalInt.empty())) {
 			rp.setPipeline(pp);

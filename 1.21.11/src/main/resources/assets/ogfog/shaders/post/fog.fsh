@@ -34,10 +34,24 @@ void main() {
     if (B.x < 0.5) {
         vec3 dir = normalize((InvRot * vec4(pv.xyz, 0.0)).xyz);
         float t = clamp(dir.y / 0.03, 0.0, 1.0);
-        vec3 h = normalize(vec3(dir.x, 0.03, dir.z));
-        vec4 c = Proj * vec4((Rot * vec4(h, 0.0)).xyz, 1.0);
-        vec2 hu = c.w > 0.0 ? clamp(c.xy / c.w * 0.5 + 0.5, 0.001, 0.999) : texCoord;
-        col = texture(SkySampler, mix(hu, texCoord, t)).rgb;
+        vec2 hz = normalize(dir.xz + vec2(0.0001));
+        vec3 acc = vec3(0.0);
+        float ws = 0.0;
+        for (int i = -4; i <= 4; i++) {
+            float an = float(i) * 0.14;
+            float cs = cos(an);
+            float sn = sin(an);
+            vec2 r = vec2(hz.x * cs - hz.y * sn, hz.x * sn + hz.y * cs);
+            vec3 h = normalize(vec3(r.x, 0.03, r.y));
+            vec4 c = Proj * vec4((Rot * vec4(h, 0.0)).xyz, 1.0);
+            if (c.w <= 0.0) continue;
+            vec2 n = c.xy / c.w;
+            if (abs(n.x) > 0.98 || abs(n.y) > 0.98) continue;
+            acc += texture(SkySampler, n * 0.5 + 0.5).rgb;
+            ws += 1.0;
+        }
+        vec3 hor = mix(B.yzw, ws > 0.0 ? acc / ws : B.yzw, ws / 9.0);
+        col = mix(hor, texture(SkySampler, texCoord).rgb, t);
     }
     fragColor = vec4(col, a);
 }

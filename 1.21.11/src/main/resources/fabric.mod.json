@@ -3,7 +3,7 @@
 	"id": "ogfog",
 	"version": "${version}",
 	"name": "OG Fog",
-	"description": "the old minecraft fog is back: pick the fog color and how close it starts and ends, so the far edge of the world matches your pack. settings through mod menu and cloth config, or the /ogfog command.",
+	"description": "the old minecraft fog is back: pick the fog color and how close it starts and ends, so the far edge of the world matches your pack. menu needs Wysss Library (key V), or the /ogfog command.",
 	"authors": ["realwysss"],
 	"contact": {"sources": "https://github.com/realwysss/OG-Fog"},
 	"license": "All-Rights-Reserved",
@@ -21,7 +21,7 @@
 	],
 	"suggests": {
 		"modmenu": "*",
-		"cloth-config": "*"
+		"wysslib": "*"
 	},
 	"depends": {
 		"fabricloader": ">=0.16.0",
